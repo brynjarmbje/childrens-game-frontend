@@ -1,16 +1,18 @@
-// app/login.tsx
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useRouter } from 'expo-router';
 import api from '../services/api';
+import loginStyles from '../styles/loginStyles';
 
 export default function Login() {
   const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    setLoading(true);
     try {
       const response = await api.post('/api/auth/login', { username, password });
       if (response.status === 200) {
@@ -20,35 +22,38 @@ export default function Login() {
     } catch (err) {
       setError('Login failed. Please check credentials.');
       console.error(err);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Admin Login</Text>
+    <View style={loginStyles.container}>
+      <Text style={loginStyles.title}>Lærilærlær</Text>
       <TextInput
-        style={styles.input}
-        placeholder="Username"
+        style={loginStyles.input}
+        placeholder="Notendanafn"
+        placeholderTextColor="#999"
         autoCapitalize="none"
         value={username}
         onChangeText={setUsername}
       />
       <TextInput
-        style={styles.input}
-        placeholder="Password"
+        style={loginStyles.input}
+        placeholder="Lykilorð"
+        placeholderTextColor="#999"
         secureTextEntry
         value={password}
         onChangeText={setPassword}
       />
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      <Button title="Login" onPress={handleLogin} />
+      {error ? <Text style={loginStyles.error}>{error}</Text> : null}
+      {loading ? (
+        <ActivityIndicator size="large" color="#FF6F61" />
+      ) : (
+        <TouchableOpacity style={loginStyles.button} onPress={handleLogin}>
+          <Text style={loginStyles.buttonText}>Innskrá</Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20 },
-  title: { fontSize: 24, marginBottom: 20, textAlign: 'center' },
-  input: { borderWidth: 1, borderColor: '#ccc', padding: 10, marginBottom: 10 },
-  error: { color: 'red', textAlign: 'center' },
-});
