@@ -17,31 +17,41 @@ export default function DashboardScreen() {
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const response = await api.get(`/api/admins/${adminId}`);
-        console.log('Dashboard raw response:', response.data);
-        const { schoolName, managedChildren } = response.data || {};
-        setSchoolName(schoolName || 'No school returned');
-        let childrenData = (managedChildren || []).map((child: any) => ({
+        // Use the working endpoint that returns all children for the admin's school.
+        const childrenResponse = await api.get(`/api/admins/${adminId}/children/all`);
+        console.log('Children response:', childrenResponse.data);
+        let childrenData = (childrenResponse.data || []).map((child: any) => ({
           id: child.id,
           name: child.name,
         }));
-        // If teacher has selected children, filter the list accordingly
+        // If teacher has selected children, filter the list accordingly.
         if (selectedChildren) {
           const selectedArray = JSON.parse(selectedChildren) as number[];
-            childrenData = childrenData.filter((child: { id: number; name: string }) => selectedArray.includes(child.id));
+          childrenData = childrenData.filter((child: { id: number }) => selectedArray.includes(child.id));
         }
         setChildren(childrenData);
+        
+        // Temporarily set the school name to a known value or fetched separately.
+        // You could eventually create a separate endpoint for schoolName if needed.
+        setSchoolName("Besti skólinn");
       } catch (err: any) {
-        console.error('Error loading dashboard:', err);
-        setError('Failed to load dashboard.');
+        console.error("Error loading dashboard:", err);
+        setError("Failed to load dashboard.");
       } finally {
         setLoading(false);
       }
     };
-
+    
     if (adminId) {
       fetchDashboard();
     }
+      // Simulate a successful API response with dummy data:
+  // setSchoolName("Test School");
+  // setChildren([
+  //   { id: 1, name: "Child One" },
+  //   { id: 2, name: "Child Two" },
+  // ]);
+  // setLoading(false);
   }, [adminId, selectedChildren]);
 
   if (loading) {
